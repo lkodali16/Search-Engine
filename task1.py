@@ -25,7 +25,7 @@ for i in range(64):
     (soup.find('doc')).decompose()
 
     r.process_query(query)          # parse the query
-    docs_and_scores = r.get_scores_for_docs()   # retrieve relevant documents
+    docs_and_scores = r.get_scores_for_docs('tfidf')   # retrieve relevant documents
 
     # save results into appropriate file
     docs = docs_and_scores[0]

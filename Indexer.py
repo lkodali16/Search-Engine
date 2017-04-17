@@ -22,8 +22,13 @@ class Parser:
         main_text = soup.get_text().encode('utf-8')
 
         special_chars = re.sub("[,.-:]", "", string.punctuation) # contains string of special chars
-        main_text = main_text.translate(None, special_chars)    # delete chars present in special_chars
+        special_chars = special_chars.replace('-', "")
+        ignore_list = ['!', '@', '#', '$', '^', '&', '*', '(', ')', '_', '+', '=', '{', '[', '}', ']', '|',
+                       '\\', '"', "'", ';', '/', '<', '>', '?', '%']
+        main_text = main_text.translate(None, ''.join(ignore_list))    # delete chars present in special_chars
         main_text = main_text.replace(':', ' ')     # to split hours and minutes
+        main_text = main_text.replace('-', ' ')     # to split the words containg '-' symbol
+                                                    # eg: multi-targeted to 'multi', 'targeted'
         main_text = main_text.split()
 
         index = 0
@@ -49,6 +54,8 @@ class Parser:
                 parsed_text += each_word + ' '
             else:
                 each_word = re.sub("[.,]", "", each_word)   # since it is not a number, remove '.', ',' '''
+            if each_word == '':
+                continue
             parsed_text += each_word + ' '
 
         f.close()
@@ -82,7 +89,7 @@ class InvertedIndexer:
         self.corpus_directory = corpus_directory
         self.docIDs = {}        # contains ID assigned for each document(text file)
         self.inverted_indexes = {}  # contains inverted indexes for each word
-        self.doc_legths = {}        #to store number of tokens in each document
+        self.doc_lengths = {}        #to store number of tokens in each document
                                     # key - doc ID; value - doc length
         self.tf_table = {}      # stores tf table
         self.df_table = {}
@@ -112,28 +119,28 @@ class InvertedIndexer:
             # --------------------------------------------------------
 
             if n == 1:
-                self.doc_legths[self.docIDs[each_file]] = len(token_list)   # to save number of tokens in each document
+                self.doc_lengths[each_file] = len(token_list)   # to save number of tokens in each document
             else:
                 # generate WORD's (word n-gram)
                 ngram = zip(*[token_list[i:] for i in range(n)])
                 token_list = []
                 for each_token in ngram:
                     token_list.append(' '.join(list(each_token)))
-                self.doc_legths[self.docIDs[each_file]] = len(token_list)
+                self.doc_lengths[each_file] = len(token_list)
 
             for each_token in token_list:
                 if each_token not in self.inverted_indexes:
                     # create a dictionary and add it to inverted indexes
                     inv_index = {}
-                    inv_index[self.docIDs[each_file]] = 1
+                    inv_index[each_file] = 1
                     self.inverted_indexes[each_token] = inv_index
 
                 else:
                     # update tf
-                    if self.docIDs[each_file] not in self.inverted_indexes[each_token]:
-                        self.inverted_indexes[each_token][self.docIDs[each_file]] = 1
+                    if each_file not in self.inverted_indexes[each_token]:
+                        self.inverted_indexes[each_token][each_file] = 1
                     else:
-                        self.inverted_indexes[each_token][self.docIDs[each_file]] += 1
+                        self.inverted_indexes[each_token][each_file] += 1
         # print self.inverted_indexes
         # f = open('Inverted_indexes.txt', 'w')
         # sys.stdout = open('Inverted_indexes.txt', 'w')
