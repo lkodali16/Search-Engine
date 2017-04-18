@@ -16,15 +16,21 @@ os.chdir(os.pardir)
 f = open('cacm.query.txt', 'r')
 soup = BeautifulSoup(f.read(), 'html.parser')
 f.close()
+
+f_stop_words = open('common_words.txt', 'r')
+stop_words_list = f_stop_words.readlines()
+stop_words = [i.strip() for i in stop_words_list]
+f_stop_words.close()
+
 model = 'tfidf'
-f = open('task1_'+ model + '.txt', 'w')
+f = open('task3a_'+ model + '_stopped.txt', 'w')     # open file for writing results
 for i in range(64):
     query_no = (soup.find('docno')).text.encode('utf-8')    # extract query number and query
     (soup.find('docno')).decompose()
     query = (soup.find('doc')).text.encode('utf-8')
     (soup.find('doc')).decompose()
 
-    r.process_query(query)          # parse the query
+    r.process_query(query, stopped = True, stopwords = stop_words)          # parse the query
     # r.clean_content(query)
     docs_and_scores = r.get_scores_for_docs(model)   # retrieve relevant documents
 

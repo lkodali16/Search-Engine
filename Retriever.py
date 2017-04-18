@@ -81,7 +81,7 @@ class Retriever:
 
         return BM25_score_per_query
 
-    def process_query(self, query, ret = False):  # similar to process used while parsing corpus
+    def process_query(self, query, ret = False, stopped = False, stopwords = []):  # similar to process used while parsing corpus
         query = query.lower()
         # special_chars = re.sub("[,.-:]", "", string.punctuation)
         special_chars = ['!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '_', '+', '=', '{', '}', '[', ']', '|', '\\', ';', "'", '"', '/', '<', '>', '?']
@@ -90,18 +90,24 @@ class Retriever:
         query = query.replace('-', ' ')     # to split the words containg '-' symbol
                                             # eg: multi-targeted to 'multi', 'targeted'
         tokens = query.split()
+        tokens = [each_token.strip('.,-') for each_token in tokens]
         parsed_query = ''
         self.query_dic = {}
+        stopwords_in_query = []
         for each_token in tokens:
-            key = each_token.strip('.,-')
-            parsed_query += key + ' '
-            self.query_dic[key] = 0
+            if stopped:
+                if each_token in stopwords:
+                    stopwords_in_query.append(each_token)
+                    continue
+            parsed_query += each_token + ' '
+            self.query_dic[each_token] = 0
         if ret:
             return parsed_query
 
         self.current_query = parsed_query.split()
         for each_token in tokens:
-            self.query_dic[each_token] += 1     # term frequency for bm25 (qf)
+            if each_token not in stopwords_in_query:
+                self.query_dic[each_token] += 1     # term frequency for bm25 (qf)
 
 def hw4():
     directory = raw_input('Enter corpus directory: ')

@@ -15,7 +15,7 @@ class Parser:
                                         # this variable is populated in generate_corpus() function
         self.stop_words = []
 
-    def parse_file(self, file_name):     # file_name -> file containing raw html data
+    def parse_file(self, file_name, stopped):     # file_name -> file containing raw html data
         parsed_text = ''
         f = open(file_name, 'r')
         html_page = f.read()
@@ -57,6 +57,9 @@ class Parser:
                 each_word = re.sub("[.,]", "", each_word)   # since it is not a number, remove '.', ',' '''
             if each_word == '':
                 continue
+            if stopped:
+                if each_word in self.stop_words:
+                    continue
             parsed_text += each_word + ' '
 
         f.close()
@@ -75,7 +78,10 @@ class Parser:
             self.corpus_directory = os.path.abspath(os.path.join(os.pardir, 'corpus'))'''
         self.corpus_directory = os.path.abspath(os.path.join(os.getcwd(), 'parsed_corpus'))
         if stopped:
-            f = open('')
+            f = open('common_words.txt', 'r')
+            stop_words = f.readlines()
+            self.stop_words = [i.strip() for i in stop_words]
+            f.close()
         if not os.path.exists(self.corpus_directory):
             os.mkdir(self.corpus_directory, 0755)
             print "created directory", self.corpus_directory
@@ -83,7 +89,7 @@ class Parser:
         os.chdir(raw_corpus_directory)
         files_list = glob.glob('*.html')
         for each_file in files_list:
-            self.parse_file(each_file)
+            self.parse_file(each_file, stopped)
         return self.corpus_directory
 
 
