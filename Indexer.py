@@ -13,6 +13,7 @@ class Parser:
     def __init__(self):
         self.corpus_directory = ''      # this contains cleaned corpus directory
                                         # this variable is populated in generate_corpus() function
+        self.stop_words = []
 
     def parse_file(self, file_name):     # file_name -> file containing raw html data
         parsed_text = ''
@@ -66,13 +67,15 @@ class Parser:
         f.flush()
         f.close()
 
-    def build_corpus(self, raw_corpus_directory):
+    def build_corpus(self, raw_corpus_directory, stopped = False):
         # create a directory to store parsed documents
         '''if raw_corpus_directory == os.path.abspath(os.path.join(os.pardir, 'corpus')):
             self.corpus_directory = os.path.abspath(os.path.join(os.pardir, 'parsed_corpus'))
         else:
             self.corpus_directory = os.path.abspath(os.path.join(os.pardir, 'corpus'))'''
         self.corpus_directory = os.path.abspath(os.path.join(os.getcwd(), 'parsed_corpus'))
+        if stopped:
+            f = open('')
         if not os.path.exists(self.corpus_directory):
             os.mkdir(self.corpus_directory, 0755)
             print "created directory", self.corpus_directory

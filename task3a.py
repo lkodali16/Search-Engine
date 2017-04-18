@@ -5,7 +5,7 @@ import Retriever
 
 p = Indexer.Parser()
 raw_corpus_directory = raw_input("Enter the raw corpus directory (html files): ")
-corpus_directory = p.build_corpus(raw_corpus_directory)
+corpus_directory = p.build_corpus(raw_corpus_directory, stopped = True)
 
 I = Indexer.InvertedIndexer(corpus_directory)
 I.ngram_indexer(1) # builds a unigram indexes for each word

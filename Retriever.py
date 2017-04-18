@@ -25,7 +25,7 @@ class Retriever:
         # I = indexer.InvertedIndexer(self.raw_corpus_directory)
         self.I.ngram_indexer(1)
 
-    def get_scores_for_docs(self, model = 'bm25'):
+    def get_scores_for_docs(self, model):
         if model == 'bm25':     # use bm25 retrieval model
             if self.first_query:
                 self.first_query = False
@@ -35,14 +35,14 @@ class Retriever:
                 self.avdl = float(self.avdl) / len(self.I.doc_lengths)
             for each_file in self.I.docIDs:
                 BM25_score = 0
-                for each_query_term in self.query_dic:
+                for each_query_term in self.current_query:      # replace current_query with query_dic
                     BM25_score += self.calculate_BM25_score(each_query_term, each_file)
                 self.score_dic[each_file] = BM25_score
 
         if model == 'tfidf':    # use tf-idf retrieval model
             for each_file in self.I.docIDs:
                 tfidf_score = 0
-                for each_query_term in self.query_dic:
+                for each_query_term in self.current_query:
                     fk = 0  # number of occurrences of term k in document
                     doc_len = self.I.doc_lengths[each_file]
                     if each_query_term in self.I.inverted_indexes:
@@ -81,23 +81,27 @@ class Retriever:
 
         return BM25_score_per_query
 
-    def process_query(self, query):  # similar to process used while parsing corpus
+    def process_query(self, query, ret = False):  # similar to process used while parsing corpus
         query = query.lower()
-        self.current_query = query
-        special_chars = re.sub("[,.-:]", "", string.punctuation)
-        ignore_list = ['!', '@', '#', '$', '^', '&', '*', '(', ')', '_', '+', '=', '{', '[', '}', ']', '|',
-                       '\\', '"', "'", ';', '/', '<', '>', '?', '%']
-        query = query.translate(None, ''.join(ignore_list))
+        # special_chars = re.sub("[,.-:]", "", string.punctuation)
+        special_chars = ['!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '_', '+', '=', '{', '}', '[', ']', '|', '\\', ';', "'", '"', '/', '<', '>', '?']
+        query = query.translate(None, ''.join(special_chars))
         query = query.replace(':', " ")
         query = query.replace('-', ' ')     # to split the words containg '-' symbol
                                             # eg: multi-targeted to 'multi', 'targeted'
         tokens = query.split()
+        parsed_query = ''
         self.query_dic = {}
         for each_token in tokens:
-            query = each_token.strip('.,-')
-            self.query_dic[each_token] = 0
+            key = each_token.strip('.,-')
+            parsed_query += key + ' '
+            self.query_dic[key] = 0
+        if ret:
+            return parsed_query
+
+        self.current_query = parsed_query.split()
         for each_token in tokens:
-            self.query_dic[each_token] += 1     # term frequency
+            self.query_dic[each_token] += 1     # term frequency for bm25 (qf)
 
 def hw4():
     directory = raw_input('Enter corpus directory: ')
