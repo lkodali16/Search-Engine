@@ -8,6 +8,7 @@ import operator
 import math
 import time
 import sys
+from collections import Counter
 
 class Parser:
     def __init__(self):
@@ -111,7 +112,7 @@ class InvertedIndexer:
         files_list = glob.glob('*.html')
         id_of_doc = 1
         for each_file in files_list:
-            self.docIDs[each_file[:len(each_file)-5]] = id_of_doc
+            self.docIDs[each_file[:len(each_file) - 5]] = id_of_doc
             id_of_doc += 1
 
         # populate inverted indexes dictionary with token and its
@@ -156,104 +157,18 @@ class InvertedIndexer:
         # print self.inverted_indexes
         # sys.stdout.close()
 
-    def corpus_statistics(self, n, save = False):
-        print "Generating tf table"
-        for each_word in self.inverted_indexes:
-            self.tf_table[each_word] = 0
-            for each_doc in self.inverted_indexes[each_word]:
-                self.tf_table[each_word] += self.inverted_indexes[each_word][each_doc]
-
-        if os.getcwd() == self.corpus_directory:
-            os.chdir(os.pardir)
-        # save sorted table into a file
-        sorted_words = sorted(self.tf_table.items(), key = operator.itemgetter(1), reverse=True)
-        words = [x[0] for x in sorted_words]
-        tf = [x[1] for x in sorted_words]
-
-        if save:
-            f = open('tf_table_' + str(n) + '_gram.txt', 'w')
-            for i in range(len(self.tf_table)):
-                f.write(str(words[i]) + '\t' + str(tf[i]) + '\n')
-            f.flush()
-            f.close()
-
-        print "Generating df table"
-        word_list = []
-        for k,v in self.inverted_indexes.viewitems():
-            word_list.append(k)
-        sorted_words = sorted(word_list)
-        for each_word in sorted_words:
-            self.df_table[each_word] = []
-            for k,v in self.inverted_indexes[each_word].viewitems():
-                self.df_table[each_word].append(k)
-
-        if save:
-            f = open('df_table_' + str(n) + '_gram.txt', 'w')
-            for each_word in sorted_words:
-                f.write(str(each_word) + ' ' + str(self.df_table[each_word]) + ' ' + str(len(self.df_table[each_word])) + '\n')
-
-    def stoplist(self):
-        stop_words = {}
-        print "Generating idf values for each word"
-        for key,value in self.tf_table.viewitems():
-            #tf = self.tf_table[each_word]
-            idf = math.log(float(len(self.docIDs))/len(self.df_table[key]), 2)
-            stop_words[key] = idf
-        sorted_stop_words = sorted(stop_words.items(), key=operator.itemgetter(1), reverse=False)
-        if os.getcwd() == self.corpus_directory:
-            os.chdir(os.pardir)
-        f = open('stop_list.txt', 'w')
-        for each_word in sorted_stop_words:
-            f.write(str(each_word[0]) + ' ' + str(stop_words[each_word[0]]) + '\n')
-
-def build_corpus(file_name):
-    corpus_directory = os.path.join(os.getcwd(), 'raw_corpus')    #get corpus directory and check whether it exists
-    if not os.path.exists(corpus_directory):
-        print "created directory named \"raw_courpus\" "
-        print "downloading html file ..."
-        os.makedirs(corpus_directory, 0755)     #creating directory with normal access flags
-    f = open(file_name, 'r')
-    urls = f.read().splitlines()
-    f.close()
-    os.chdir(corpus_directory)
-    for eachUrl in urls:
-        try:
-            html_page = requests.get(eachUrl)
-        except:
-            print "problem in accesing", eachUrl
-            continue
-
-        file_name = eachUrl[30:]
-        file_name = file_name.translate(None, string.punctuation)   # removes punctuation from the filename
-        file_name = file_name + '.txt'
-        f = open(file_name, 'w')
-        f.write(html_page.text.encode('utf-8'))
-        f.flush()
-        f.close()
-    os.chdir(os.pardir)
-
-
-def hw3():
-    file_name = raw_input('Input filename containing links: ')
-    #build_corpus(file_name)
-    #p = Parser()
-    #p.generate_corpus()
-
-    # If p object is created uncomment below line to pass corpus_directory to InvertedIndexer
-    #corpus_directory = p.corpus_directory
-
-    # If parser object is not created, uncomment these lines
-    # ------------------------------------------------------
-    #
-    corpus_directory = os.getcwd()
-    corpus_directory = os.path.join(corpus_directory, 'corpus')
-    #
-    # ------------------------------------------------------
-
-    I = InvertedIndexer(corpus_directory)
-    I.ngram_indexer(3)
-    # print I.inverted_indexes
-    I.corpus_statistics(3)
-    # I.stoplist()    # only of unigrams
-
-# hw3()
+    def stemmed_indexer(self, corpus = {}):
+        print "Generating Inverted Indexes gram using stemmed corpus"
+        doc_id = 1
+        for each_file, file_content in corpus.viewitems():
+            self.docIDs[each_file] = doc_id
+            doc_id += 1
+            self.doc_lengths[each_file] = len(file_content)
+            word_count = dict(Counter(file_content))
+            for each_word in file_content:
+                if each_word not in self.inverted_indexes:
+                    inv_index = dict()
+                    inv_index[each_file] = word_count[each_word]
+                    self.inverted_indexes[each_word] = inv_index
+                else:
+                    self.inverted_indexes[each_word][each_file] = word_count[each_word]
