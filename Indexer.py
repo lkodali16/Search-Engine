@@ -65,19 +65,14 @@ class Parser:
 
         f.close()
         file_name = os.path.join(self.corpus_directory, file_name)
-        print file_name
+        # print file_name
         f = open(file_name, 'w')
         f.write(parsed_text)
         f.flush()
         f.close()
 
     def build_corpus(self, raw_corpus_directory, stopped = False):
-        # create a directory to store parsed documents
-        '''if raw_corpus_directory == os.path.abspath(os.path.join(os.pardir, 'corpus')):
-            self.corpus_directory = os.path.abspath(os.path.join(os.pardir, 'parsed_corpus'))
-        else:
-            self.corpus_directory = os.path.abspath(os.path.join(os.pardir, 'corpus'))'''
-        self.corpus_directory = os.path.abspath(os.path.join(os.getcwd(), 'parsed_corpus'))
+        self.corpus_directory = os.path.abspath(os.path.join(os.getcwd(), 'processed_corpus'))
         if stopped:
             f = open('common_words.txt', 'r')
             stop_words = f.readlines()
@@ -86,11 +81,12 @@ class Parser:
         if not os.path.exists(self.corpus_directory):
             os.mkdir(self.corpus_directory, 0755)
             print "created directory", self.corpus_directory
-        print "parsed files are saved into ", self.corpus_directory
+        print "processing files in the corpus"
         os.chdir(raw_corpus_directory)
         files_list = glob.glob('*.html')
         for each_file in files_list:
             self.parse_file(each_file, stopped)
+        print "processed files are saved into ", self.corpus_directory
         return self.corpus_directory
 
 
@@ -151,11 +147,6 @@ class InvertedIndexer:
                         self.inverted_indexes[each_token][each_file] = 1
                     else:
                         self.inverted_indexes[each_token][each_file] += 1
-        # print self.inverted_indexes
-        # f = open('Inverted_indexes.txt', 'w')
-        # sys.stdout = open('Inverted_indexes.txt', 'w')
-        # print self.inverted_indexes
-        # sys.stdout.close()
 
     def stemmed_indexer(self, corpus = {}):
         print "Generating Inverted Indexes gram using stemmed corpus"
