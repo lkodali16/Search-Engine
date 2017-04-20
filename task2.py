@@ -27,15 +27,16 @@ def Query_Expander(query, docs, corpus, k = 12, n = 5):
 
 current_directory = os.getcwd()
 
-corpus_directory = os.path.join(current_directory, "parsed_corpus")
+corpus_directory = os.path.join(current_directory, "processed_corpus")
 I = Indexer.InvertedIndexer(corpus_directory)
 I.ngram_indexer(1)
 r = Retriever.Retriever(corpus_directory, I)
 
-model = 'tfidf'
+model = 'bm25'
 # get the results from the previous runs (bm25 and tfidf)
 file_name = 'task1_' + model + '.txt'
-results_file_dir = os.path.join(current_directory, file_name)
+results_file_dir = os.path.join(current_directory, "task1")
+results_file_dir = os.path.join(results_file_dir, file_name)
 
 f = open(results_file_dir, 'r')
 data = f.readlines()
@@ -75,7 +76,7 @@ for i in range(64):
     query_dic[int(query_no)] = query
 
 os.chdir(current_directory)
-f = open('expanded_queries.txt', 'w')
+f = open('expanded_queries_'+ model +'.txt', 'w')
 expanded_query_dic = {}
 for query_no, query in query_dic.viewitems():
     processed_query = r.process_query(query, True)
@@ -83,8 +84,7 @@ for query_no, query in query_dic.viewitems():
     f.write(str(query_no) + " " + expanded_query_dic[query_no] + "\n")
 f.close()
 
-
-f = open('task1_'+ model + '_expanded.txt', 'w')
+f = open('task2_expanded_'+ model + '.txt', 'w')
 for query_no, query in expanded_query_dic.viewitems():
     r.process_query(query)          # parse the query
     # r.clean_content(query)
@@ -99,5 +99,5 @@ for query_no, query in expanded_query_dic.viewitems():
                     + str(docs[i]) + ' ' \
                     + str((i+1)) + " " \
                     + str(scores[i]) + " " \
-                    + "system_name\n")
+                    + model + "\n")
 f.close()

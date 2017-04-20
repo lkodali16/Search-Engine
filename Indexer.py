@@ -72,7 +72,11 @@ class Parser:
         f.close()
 
     def build_corpus(self, raw_corpus_directory, stopped = False):
-        self.corpus_directory = os.path.abspath(os.path.join(os.getcwd(), 'processed_corpus'))
+        if stopped:
+            self.corpus_directory = os.path.abspath(os.path.join(os.getcwd(), 'stopped_corpus'))
+        else:
+            self.corpus_directory = os.path.abspath(os.path.join(os.getcwd(), 'processed_corpus'))
+
         if stopped:
             f = open('common_words.txt', 'r')
             stop_words = f.readlines()
@@ -99,6 +103,7 @@ class InvertedIndexer:
                                     # key - doc ID; value - doc length
         self.tf_table = {}      # stores tf table
         self.df_table = {}
+        self.corpus = {}
 
 
     def ngram_indexer(self, n):
@@ -119,7 +124,7 @@ class InvertedIndexer:
             f.close()
             each_file = each_file[:len(each_file)-5]    # to remove '.html' from end of the filename
             token_list = data.split()
-
+            corpus[each_file] = token_list
             # --------------------------------------------------------
             # remove stop words from token_list if stopping is enabled
             # --------------------------------------------------------

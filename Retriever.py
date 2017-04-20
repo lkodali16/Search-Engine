@@ -7,7 +7,7 @@ import Indexer
 import re
 
 class Retriever:
-    def __init__(self, corpus_directory, I):
+    def __init__(self, corpus_directory, I, project_directory = ''):
         self.corpus_directory = corpus_directory
         # parser = indexer.Parser()
         # self.I = Indexer.InvertedIndexer(self.corpus_directory)
@@ -18,6 +18,7 @@ class Retriever:
 
         self.avdl = 0;  # average doc length
         self.first_query = True
+        self.project_directory = project_directory
 
     def build_indexes(self):
         # parser = indexer.Parser()
@@ -108,6 +109,9 @@ class Retriever:
         for each_token in tokens:
             if each_token not in stopwords_in_query:
                 self.query_dic[each_token] += 1     # term frequency for bm25 (qf)
+
+    def get_corpus(self):
+
 
 def hw4():
     directory = raw_input('Enter corpus directory: ')

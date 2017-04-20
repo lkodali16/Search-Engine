@@ -22,8 +22,8 @@ stop_words_list = f_stop_words.readlines()
 stop_words = [i.strip() for i in stop_words_list]
 f_stop_words.close()
 
-model = 'tfidf'
-f = open('task3a_'+ model + '_stopped.txt', 'w')     # open file for writing results
+model = 'bm25'
+f = open('task3a_'+ model + '.txt', 'w')     # open file for writing results
 for i in range(64):
     query_no = (soup.find('docno')).text.encode('utf-8')    # extract query number and query
     (soup.find('docno')).decompose()

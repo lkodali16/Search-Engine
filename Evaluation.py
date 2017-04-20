@@ -5,9 +5,10 @@ from operator import itemgetter
 
 class Evaluation:
 
-    def __init__(self,query_results,p_k):
+    def __init__(self, query_results, p_k, file_name):
         self.query_results = query_results #Give the document results corresponding to the query_id.
         self.p_k = p_k
+        self.file_name = file_name[0:len(file_name) - 4]
 
     def evaluation(self):
         query_relevant = {}
@@ -31,6 +32,10 @@ class Evaluation:
         seq_docs = {}
         MAP = [] 
         MRR = []
+        p_5_dict = {}
+        p_20_dict = {}
+        p_5 = open(self.file_name+ '_p_5.txt','w')
+        p_20 = open(self.file_name+ '_p_20.txt','w')
         for query_id,docs in query_results.viewitems():
           try:
             total_relevant_docs_query = len(query_relevant[query_id])
@@ -42,6 +47,7 @@ class Evaluation:
             relevant_doc = 0
             relevancy = 0
             count = 0
+            p_count = 0
 
             for doc in docs:
               if doc[0] in query_relevant[query_id]:
@@ -53,31 +59,49 @@ class Evaluation:
                 count += 1
                 relevance_rank = 1 / float(docs.index(doc)+1)
 
+              p_count += 1  
               scores[query_id][doc[0]] = doc[1]
               precision = float(relevant_doc)/(docs.index(doc)+1)
               recall = float(relevant_doc)/ len(query_relevant[query_id])
               precision_recall_query[query_id][doc[0]] = (precision,recall)
               seq_docs[query_id].append(doc[0])
-            
+              if p_count == self.p_k[0]:
+                p_5_dict[query_id] = precision 
+                #p_5.write("{} {}".format(query_id,precision) + '\n')
+
+              if p_count == self.p_k[1]:
+                p_20_dict[query_id] = precision 
+                #p_20.write("{} {}".format(query_id,precision) + '\n')
+
             avg_precision = float(precision_sum)/relevant_doc
             MAP.append(avg_precision)
             MRR.append(relevance_rank) 
-          except KeyError:
+          except (KeyError,ZeroDivisionError) as e:
             continue
 
+        file_map = open(self.file_name+ '_map.txt','w')
+        file_mrr = open(self.file_name+ '_mrr.txt','w')
         total_querys = [int(key) for key in precision_recall_query]
         total_querys.sort()
         total_querys = [str(key) for key in total_querys]
         map_result = sum(MAP)/len(MAP)
         mrr_result = sum(MRR)/len(MRR)
-        file1 = open('output.txt','w')
+        file_map.write("{}".format(map_result))
+        file_mrr.write("{}".format(mrr_result))
+        file_map.close()
+        file_mrr.close() 
+        file1 = open(self.file_name+ '_precision_recall.txt','w')
         for query in total_querys:
           rank = 0
+          p_5.write("{} {}".format(query,p_5_dict[query]) + '\n')
+          p_20.write("{} {}".format(query,p_20_dict[query]) + '\n')
           for doc_id in seq_docs[query]:
             rank += 1
             if doc_id in query_relevant[query]:
-              file1.write("{} {} {} {} {} {} {}".format(query,rank,doc_id,scores[query][doc_id],1,precision_recall_query[query][doc_id][0],precision_recall_query[query][doc_id][1]) + '\n')
+              file1.write("{} {} {} {} {} {} {}".format(query,rank,doc_id,scores[query][doc_id],1,precision_recall_query[query][doc_id][0],precision_recall_query[query][doc_id][1]) + '\n') 
             else:
               file1.write("{} {} {} {} {} {} {}".format(query,rank,doc_id,scores[query][doc_id],0,precision_recall_query[query][doc_id][0],precision_recall_query[query][doc_id][1]) + '\n')
 
-        file1.close() 
+        file1.close()
+        p_5.close()
+        p_20.close() 
