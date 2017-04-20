@@ -71,12 +71,11 @@ class Retriever:
             ri = 0
         else:
             R = len(self.relevance_data[query_id])
-            reli = 0
+            ri = 0
             for each_doc in self.relevance_data[query_id]:
 #                if query_term in self.I.corpus[each_doc]:
                 if each_doc in self.I.inverted_indexes[query_term]:
-                    reli += 1
-            ri = reli
+                    ri += 1
         N = len(self.I.docIDs)
         n = 0
         f = 0

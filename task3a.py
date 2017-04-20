@@ -3,13 +3,14 @@ import os
 import Indexer
 import Retriever
 
+project_directory = os.getcwd()
 p = Indexer.Parser()
 raw_corpus_directory = raw_input("Enter the raw corpus directory (html files): ")
 corpus_directory = p.build_corpus(raw_corpus_directory, stopped = True)
 
 I = Indexer.InvertedIndexer(corpus_directory)
 I.ngram_indexer(1) # builds a unigram indexes for each word
-r = Retriever.Retriever(corpus_directory, I)    # create a Retriever class, which contains different retrieval model
+r = Retriever.Retriever(corpus_directory, I, project_directory)    # create a Retriever class, which contains different retrieval model
 
 os.chdir(raw_corpus_directory)
 os.chdir(os.pardir)
@@ -22,7 +23,7 @@ stop_words_list = f_stop_words.readlines()
 stop_words = [i.strip() for i in stop_words_list]
 f_stop_words.close()
 
-model = 'bm25'
+model = 'tfidf'
 f = open('task3a_'+ model + '.txt', 'w')     # open file for writing results
 for i in range(64):
     query_no = (soup.find('docno')).text.encode('utf-8')    # extract query number and query

@@ -2,6 +2,7 @@
 
 import pdb
 from operator import itemgetter
+import os
 
 class Evaluation:
 
@@ -12,10 +13,10 @@ class Evaluation:
 
     def evaluation(self):
         query_relevant = {}
-        query_results = self.query_results
+        temp_query_results = self.query_results
 
         #Store the relevant documents corresponding to a query into a dictionary.
-        relevant = open('cacm.rel','r')
+        '''relevant = open('cacm.rel','r')
         for line in relevant.readlines():
           words = line.split()
           if query_relevant.has_key(words[0]):
@@ -24,18 +25,38 @@ class Evaluation:
             query_relevant[words[0]] = []
             query_relevant[words[0]].append(words[2])
 
-        relevant.close()
+        relevant.close()'''
+
+        relevant_list = open("cacm.rel", 'r')
+        for line in relevant_list.readlines():
+            words = line.split()
+            if query_relevant.has_key(int(words[0])):
+                doc_no = words[2][5:]
+                doc_no = str(doc_no)
+                doc = 'CACM-' + (4 - len(doc_no)) * '0' + doc_no
+                query_relevant[int(words[0])].append(doc)
+            else:
+                query_relevant[int(words[0])] = []
+                doc_no = words[2][5:]
+                doc = 'CACM-' + (4 - len(doc_no)) * '0' + doc_no
+                query_relevant[int(words[0])].append(doc)
+        relevant_list.close()
 
         #Calculate the recall and precision scores for a run.
         precision_recall_query = {}
         scores = {}
         seq_docs = {}
+        MAP_query_id = []
         MAP = [] 
         MRR = []
         p_5_dict = {}
         p_20_dict = {}
         p_5 = open(self.file_name+ '_p_5.txt','w')
         p_20 = open(self.file_name+ '_p_20.txt','w')
+        query_results = {}
+        for key,value in temp_query_results.viewitems():
+            query_results[int(key)] = value
+
         for query_id,docs in query_results.viewitems():
           try:
             total_relevant_docs_query = len(query_relevant[query_id])
@@ -74,18 +95,24 @@ class Evaluation:
                 #p_20.write("{} {}".format(query_id,precision) + '\n')
 
             avg_precision = float(precision_sum)/relevant_doc
+            MAP_query_id.append(query_id)
             MAP.append(avg_precision)
             MRR.append(relevance_rank) 
           except (KeyError,ZeroDivisionError) as e:
             continue
 
         file_map = open(self.file_name+ '_map.txt','w')
+        file_ap = open(self.file_name+ '_ap.txt', 'w')
         file_mrr = open(self.file_name+ '_mrr.txt','w')
         total_querys = [int(key) for key in precision_recall_query]
         total_querys.sort()
-        total_querys = [str(key) for key in total_querys]
+        total_querys = [key for key in total_querys]
         map_result = sum(MAP)/len(MAP)
         mrr_result = sum(MRR)/len(MRR)
+
+        for i in range(len(MAP)):
+            file_ap.write('{} {}'.format(MAP_query_id[i],MAP[i]) + '\n')
+
         file_map.write("{}".format(map_result))
         file_mrr.write("{}".format(mrr_result))
         file_map.close()

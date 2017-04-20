@@ -10,11 +10,11 @@ class SnippetGen:
         self.cwd = os.getcwd()
 
     def get_queryresults(self,name):
-        all_runs = os.path.abspath(os.path.join(self.cwd,'all_runs'))
+        all_runs = os.path.abspath(os.path.join(self.cwd,'output'))
         os.chdir(all_runs)
         results = {}
         if name == "bms25":
-          bms25 = open('task1_bm25_.txt','r')
+          bms25 = open('task1_bm25.txt','r')
           for line in bms25.readlines():
             words = line.split()
             if results.has_key(words[0]):
@@ -32,7 +32,7 @@ class SnippetGen:
     def get_snippet(self,query,results):        
         processed_corpus = os.path.abspath(os.path.join(self.cwd,'processed_corpus'))
         os.chdir(processed_corpus)
-        results = results[0:4]
+        results = results[0:10]
         query = query.split()
         query_set = set()
         for word in query:

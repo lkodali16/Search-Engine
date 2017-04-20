@@ -5,7 +5,7 @@ import os
 import glob
 import re
 
-model = 'tfidf'
+model = 'bm25'
 
 def get_stemmed_corpus():
     total_stemmed_corpus = {}
@@ -47,20 +47,21 @@ I.stemmed_indexer(stemmed_corpus)
 r = Retriever.Retriever('', I, os.getcwd())
 
 f = open('task3b_' + model + '_stemmed.txt', 'w')
-query_no = 0
+query_no = [12,13,19,23,24,25,50]
+q_iter = 0
 for each_query in stemmed_queries:
-    query_no += 1
     r.process_query(each_query)
-    docs_and_scores = r.get_scores_for_docs(model)
+    docs_and_scores = r.get_scores_for_docs(model, query_no[q_iter])
 
     # save results into appropriate file
     docs = docs_and_scores[0]
     scores = docs_and_scores[1]
     for i in range(100):
-        f.write(str(query_no) \
+        f.write(str(query_no[q_iter]) \
                 + " Q0 " \
                 + str(docs[i]) + ' ' \
                 + str((i + 1)) + " " \
                 + str(scores[i]) + " " \
                 + "system_name\n")
+    q_iter += 1
 f.close()
