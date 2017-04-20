@@ -32,7 +32,7 @@ for i in range(64):
 
     r.process_query(query, stopped = True, stopwords = stop_words)          # parse the query
     # r.clean_content(query)
-    docs_and_scores = r.get_scores_for_docs(model)   # retrieve relevant documents
+    docs_and_scores = r.get_scores_for_docs(model, int(query_no))   # retrieve relevant documents
 
     # save results into appropriate file
     docs = docs_and_scores[0]

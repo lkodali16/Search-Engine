@@ -124,7 +124,7 @@ class InvertedIndexer:
             f.close()
             each_file = each_file[:len(each_file)-5]    # to remove '.html' from end of the filename
             token_list = data.split()
-            corpus[each_file] = token_list
+            # self.corpus[each_file] = token_list
             # --------------------------------------------------------
             # remove stop words from token_list if stopping is enabled
             # --------------------------------------------------------

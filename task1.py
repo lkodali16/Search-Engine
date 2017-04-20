@@ -72,7 +72,7 @@ if task == 1:
     f = open('task1_'+model+'.txt', 'w')
     for query_no in range(len(query_dic)):
         r.process_query(query_dic[query_no + 1])                           # parse the query
-        docs_and_scores = r.get_scores_for_docs(model)   # retrieve relevant documents
+        docs_and_scores = r.get_scores_for_docs(model, (query_no + 1))   # retrieve relevant documents
 
         # save results into appropriate file
         docs = docs_and_scores[0]
@@ -134,7 +134,7 @@ if task == 2:
     for query_no, query in expanded_query_dic.viewitems():
         r.process_query(query)  # parse the query
         # r.clean_content(query)
-        docs_and_scores = r.get_scores_for_docs(model)  # retrieve relevant documents
+        docs_and_scores = r.get_scores_for_docs(model, query_no)  # retrieve relevant documents
 
         # save results into appropriate file
         docs = docs_and_scores[0]

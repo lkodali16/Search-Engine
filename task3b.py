@@ -44,7 +44,7 @@ f.close()
 
 I = Indexer.InvertedIndexer('')
 I.stemmed_indexer(stemmed_corpus)
-r = Retriever.Retriever('', I)
+r = Retriever.Retriever('', I, os.getcwd())
 
 f = open('task3b_' + model + '_stemmed.txt', 'w')
 query_no = 0

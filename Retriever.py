@@ -19,6 +19,7 @@ class Retriever:
         self.avdl = 0;  # average doc length
         self.first_query = True
         self.project_directory = project_directory
+        self.relevance_data = self.get_relevance_data()
 
     def build_indexes(self):
         # parser = indexer.Parser()
@@ -26,7 +27,7 @@ class Retriever:
         # I = indexer.InvertedIndexer(self.raw_corpus_directory)
         self.I.ngram_indexer(1)
 
-    def get_scores_for_docs(self, model):
+    def get_scores_for_docs(self, model, query_no = 1):
         if model == 'bm25':     # use bm25 retrieval model
             if self.first_query:
                 self.first_query = False
@@ -36,8 +37,8 @@ class Retriever:
                 self.avdl = float(self.avdl) / len(self.I.doc_lengths)
             for each_file in self.I.docIDs:
                 BM25_score = 0
-                for each_query_term in self.current_query:      # replace current_query with query_dic
-                    BM25_score += self.calculate_BM25_score(each_query_term, each_file)
+                for each_query_term in self.query_dic:      # replace current_query with query_dic
+                    BM25_score += self.calculate_BM25_score(each_query_term, each_file, query_no)
                 self.score_dic[each_file] = BM25_score
 
         if model == 'tfidf':    # use tf-idf retrieval model
@@ -62,21 +63,33 @@ class Retriever:
         scores = [x[1] for x in sorted_docs]
         return docs, scores
 
-    def calculate_BM25_score(self, query_term, docID):     # query_term - single word in the whole query
+    def calculate_BM25_score(self, query_term, docID, query_id):     # query_term - single word in the whole query
+        if query_term not in self.I.inverted_indexes:
+            return 0
+        if query_id not in self.relevance_data:
+            R = 0
+            ri = 0
+        else:
+            R = len(self.relevance_data[query_id])
+            reli = 0
+            for each_doc in self.relevance_data[query_id]:
+#                if query_term in self.I.corpus[each_doc]:
+                if each_doc in self.I.inverted_indexes[query_term]:
+                    reli += 1
+            ri = reli
         N = len(self.I.docIDs)
         n = 0
         f = 0
-        if query_term in self.I.inverted_indexes:
-            n = len(self.I.inverted_indexes[query_term])
-            if docID in self.I.inverted_indexes[query_term]:
-                f = self.I.inverted_indexes[query_term][docID]
+        n = len(self.I.inverted_indexes[query_term])
+        if docID in self.I.inverted_indexes[query_term]:
+            f = self.I.inverted_indexes[query_term][docID]
         qf = self.query_dic[query_term]
         k1 = 1.2
         b = 0.75
-        k2 = 100
+        k2 = 200
         dl = self.I.doc_lengths[docID]
         K = k1*((1-b) + (b*(dl/self.avdl)))
-        BM25_score_per_query = math.log(((float(N) - n + 0.5) / (n + 0.5))) * \
+        BM25_score_per_query = math.log(((float(N) - n - R + ri + 0.5) / (n - ri + 0.5)) * ((ri + 0.5) / (R - ri + 0.5))) * \
                                (float((k1 + 1)*f) /(K+f)) * \
                                ((float((k2 + 1) * qf)) / float(k2 + qf))
 
@@ -110,7 +123,22 @@ class Retriever:
             if each_token not in stopwords_in_query:
                 self.query_dic[each_token] += 1     # term frequency for bm25 (qf)
 
-    def get_corpus(self):
+    def get_relevance_data(self):
+        relevant_list = open(os.path.join(self.project_directory, "cacm.rel"), 'r')
+        query_relevant = {}
+        for line in relevant_list.readlines():
+            words = line.split()
+            if query_relevant.has_key(int(words[0])):
+                doc_no = words[2][5:]
+                doc_no = str(doc_no)
+                doc = 'CACM-' + (4 - len(doc_no)) * '0' + doc_no
+                query_relevant[int(words[0])].append(doc)
+            else:
+                query_relevant[int(words[0])] = []
+                doc_no = words[2][5:]
+                doc = 'CACM-' + (4 - len(doc_no)) * '0' + doc_no
+                query_relevant[int(words[0])].append(doc)
+        return query_relevant
 
 
 def hw4():
